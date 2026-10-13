@@ -10,7 +10,7 @@ on:
       create_release:
         description: Publish successful build as a release
         type: boolean
-        default: false
+        default: true
 permissions:
   contents: read
 concurrency:
