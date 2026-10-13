@@ -13,6 +13,34 @@ for name,s in lock.items():
     subprocess.run(['git','-C',str(path),'checkout','--detach','FETCH_HEAD'],check=True)
     actual=subprocess.check_output(['git','-C',str(path),'rev-parse','HEAD'],text=True).strip()
     assert actual==s['commit'],(name,actual)
+# crDroid tracks external driver symlinks using its original sibling names.
+# Resolve by the explicit upstream marker, rather than relying on directory depth.
+import os
+kernel=Path('work/kernel').resolve()
+roots={'sm8650-modules':Path('work/modules').resolve(),
+       'sm8650-devicetrees':Path('work/devicetrees').resolve()}
+fixed=0
+for link in kernel.rglob('*'):
+    if not link.is_symlink():
+        continue
+    old=os.readlink(link)
+    for marker,base in roots.items():
+        parts=Path(old).parts
+        if marker not in parts:
+            continue
+        suffix=parts[parts.index(marker)+1:]
+        target=base.joinpath(*suffix)
+        if not target.exists():
+            raise RuntimeError(f'Missing vendor dependency: {link} -> {target}')
+        link.unlink()
+        link.symlink_to(os.path.relpath(target,link.parent))
+        print(f'Vendor link: {link.relative_to(kernel)} -> {target}')
+        fixed+=1
+        break
+assert fixed>0, 'Expected crDroid external vendor links were not found'
+assert (kernel/'drivers/base/kernelFwUpdate/Kconfig').is_file()
+print(f'Validated {fixed} vendor source symlinks')
+
 Path('artifacts/sources.lock.json').write_text(json.dumps(lock,indent=2)+'\n')
 PYFETCH
 # Floran's Android 17 toolchain; record the archive hash with each build.
