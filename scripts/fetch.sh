@@ -31,6 +31,17 @@ for link in kernel.rglob('*'):
         suffix=parts[parts.index(marker)+1:]
         target=base.joinpath(*suffix)
         if not target.exists():
+            # The pinned upstream carries this dangling, unreferenced legacy link.
+            # It is NOT the charger driver (drivers/power/oplus), which is required.
+            if link.relative_to(kernel).as_posix() == 'drivers/soc/oplus/power':
+                referenced = subprocess.run(
+                    ['git','-C',str(kernel),'grep','-q','-F','oplus/power/',
+                     'HEAD','--','*Makefile*','*Kconfig*','*.c','*.h']).returncode
+                if referenced == 1:
+                    print('Unused upstream legacy link: drivers/soc/oplus/power; left unchanged')
+                    continue
+                if referenced != 0:
+                    raise RuntimeError('Could not verify legacy power link references')
             raise RuntimeError(f'Missing vendor dependency: {link} -> {target}')
         link.unlink()
         link.symlink_to(os.path.relpath(target,link.parent))
