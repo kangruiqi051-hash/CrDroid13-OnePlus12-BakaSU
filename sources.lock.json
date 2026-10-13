@@ -17,7 +17,7 @@
   "bakasu": {
     "url": "https://github.com/Baka-SU/BakaSU.git",
     "branch": "main",
-    "commit": "d7260ca1e5c128061122924d0d48754e361e135c"
+    "commit": "5b76b884c75f729a220bb317aa4a4fc78f0e0e9c"
   },
   "susfs": {
     "url": "https://gitlab.com/simonpunk/susfs4ksu.git",

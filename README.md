@@ -30,3 +30,7 @@ SUSFS 补丁冲突会失败停止，不使用 `patch || true` 或删除 rejects�
 ## 归属
 
 参考工作流和 extract-cert 主机兼容修复来自 Floran-Kernel；内核和各补丁保留上游许可证。此仓库是构建脚本集合，不把上游代码改称自有源码。来源 URL 和提交见 sources.lock.json。
+
+### BakaSU / SUSFS compatibility pin
+
+BakaSU is pinned to `5b76b884c75f729a220bb317aa4a4fc78f0e0e9c`, immediately before upstream suspended SUSFS builds in `48fa4bb7ec8bddb8ea932a8c9be0877f89a1fa73`. Newer BakaSU changes are not included. The upstream suspension concerns SELinux hiding compatibility; its build guard is not removed. Compilation and device behavior must still be verified.
