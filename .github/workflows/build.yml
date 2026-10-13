@@ -1,0 +1,74 @@
+name: Build crDroid 13 OnePlus 12 Kernel
+on:
+  workflow_dispatch:
+    inputs:
+      variant:
+        description: Kernel variant
+        type: choice
+        options: [BakaSU-SUSFS, BakaSU, Stock]
+        default: BakaSU-SUSFS
+      create_release:
+        description: Publish successful build as a release
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: kernel-${{ github.ref }}-${{ inputs.variant }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    defaults:
+      run:
+        shell: bash
+    env:
+      VARIANT: ${{ inputs.variant }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare build machine
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bc bison flex libssl-dev libelf-dev libdw-dev build-essential lz4 git python3 curl dwarves cpio zip unzip gcc-aarch64-linux-gnu
+          sudo fallocate -l 12G /swap-kernel
+          sudo chmod 600 /swap-kernel
+          sudo mkswap /swap-kernel
+          sudo swapon /swap-kernel
+      - name: Fetch pinned sources and toolchain
+        run: bash scripts/fetch.sh
+      - name: Integrate patches and build
+        run: |
+          mkdir -p artifacts
+          set -o pipefail
+          bash scripts/build.sh 2>&1 | tee artifacts/build.log
+      - name: Package kernel
+        run: python3 scripts/package.py
+      - name: Upload build output and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: waffle-crDroid13-${{ inputs.variant }}-${{ github.run_number }}
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 14
+  release:
+    needs: build
+    if: inputs.create_release
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: waffle-crDroid13-${{ inputs.variant }}-${{ github.run_number }}
+          path: artifacts
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VARIANT: ${{ inputs.variant }}
+        run: |
+          gh release create "build-${GITHUB_RUN_NUMBER}" artifacts/*.zip artifacts/build-info.json \
+            --title "waffle crDroid 13 ${VARIANT} #${GITHUB_RUN_NUMBER}" \
+            --notes "Source-pinned experimental kernel. Compile success is not device boot validation. Disable existing SUSFS LKM before using a built-in SUSFS build."

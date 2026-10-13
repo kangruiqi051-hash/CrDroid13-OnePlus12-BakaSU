@@ -1,0 +1,32 @@
+{
+  "kernel": {
+    "url": "https://github.com/crdroidandroid/android_kernel_oneplus_sm8650.git",
+    "branch": "17.0",
+    "commit": "3127ab97bcbbd4a86f7326b48fc3a1fbe6a4c12c"
+  },
+  "modules": {
+    "url": "https://github.com/crdroidandroid/android_kernel_oneplus_sm8650-modules.git",
+    "branch": "17.0",
+    "commit": "9c789e62f8f7f76754ff9db257ab08c4e212a6cc"
+  },
+  "devicetrees": {
+    "url": "https://github.com/crdroidandroid/android_kernel_oneplus_sm8650-devicetrees.git",
+    "branch": "17.0",
+    "commit": "788a0e614d3e6abff95b818cc1b40ca0f744e543"
+  },
+  "bakasu": {
+    "url": "https://github.com/Baka-SU/BakaSU.git",
+    "branch": "main",
+    "commit": "d7260ca1e5c128061122924d0d48754e361e135c"
+  },
+  "susfs": {
+    "url": "https://gitlab.com/simonpunk/susfs4ksu.git",
+    "branch": "gki-android14-6.1",
+    "commit": "5192aa2d33b381b58c1051532f9e1dfa5de6e8d3"
+  },
+  "anykernel": {
+    "url": "https://github.com/AkiHaza/AnyKernel3.git",
+    "branch": "master",
+    "commit": "b96f1c0e35fcce583b916eb267ac0347d59b9629"
+  }
+}
