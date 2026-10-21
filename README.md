@@ -9,13 +9,13 @@ Actions → Build crDroid 13 OnePlus 12 Kernel → Run workflow。
 - `BakaSU-SUSFS`：内置 root 和 SUSFS，默认选项。
 - `BakaSU`：仅内置 root，使用 tracepoint hook。
 - `Stock`：不集成 root/SUSFS 的源码对照构建；不是原 ROM 二进制的逐位复现。
-- `create_release`：默认关闭；开启后成功产物会发布为 Release。
+- `create_release`：默认开启；成功产物会发布为 Release。
 
 下载运行页面的 Artifacts。里面包含 AnyKernel3 ZIP、原始 Image、最终 kernel.config、构建日志和来源记录。失败时也上传日志，但不会生成可刷包。没有定时编译，手动触发。
 
 ## 来源和兼容性
 
-所有源码固定在 sources.lock.json。主内核 17.0 分支提交 `3127ab97bcbbd4a86f7326b48fc3a1fbe6a4c12c`，对应 `6.1.175-g3127ab97bcbb`。内核、设备树和厂商模块的仓库均来自 crDroid 17.0 设备依赖。SUSFS 使用内核系列 `gki-android14-6.1`；它与用户空间的 Android 17 不是同一版本编号。
+每次运行都会解析 crDroid 内核、厂商模块和设备树 `17.0` 分支的最新提交，再按解析出的提交构建；BakaSU、SUSFS 和 AnyKernel3 继续固定在已选版本。仓库中的 sources.lock.json 定义跟踪策略，产物中的同名文件记录本次实际使用的全部提交，sources.requested.json 保留输入配置，AK3 中的 build-info.json 也记录实际提交。源码最新分支不保证与某个已发布 ROM 二进制完全对应，上游尚未公开的更新无法自动获取。内核、设备树和厂商模块的仓库均来自 crDroid 17.0 设备依赖。SUSFS 使用内核系列 `gki-android14-6.1`；它与用户空间的 Android 17 不是同一版本编号。
 
 使用官方三个 defconfig 片段，参考 Floran 的 Android 17 Clang r596125，并记录工具链压缩包 SHA256。BakaSU 直接集成固定提交，不调用会追踪最新版的 setup.sh。
 
@@ -25,7 +25,7 @@ Actions → Build crDroid 13 OnePlus 12 Kernel → Run workflow。
 
 ## 补丁维护
 
-SUSFS 补丁冲突会失败停止，不使用 `patch || true` 或删除 rejects。需要在固定 crDroid 提交上手工审查兼容适配后再构建。默认不加入 LZ4、Docker、Droidspaces 或其他无关功能。
+SUSFS 补丁冲突会失败停止，不使用 `patch || true` 或删除 rejects。遇到上游更新导致冲突时，需要手工审查兼容适配后再构建。默认不加入 LZ4、Docker、Droidspaces 或其他无关功能。
 
 ## 归属
 

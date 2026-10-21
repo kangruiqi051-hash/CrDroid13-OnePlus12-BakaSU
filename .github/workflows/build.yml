@@ -35,7 +35,7 @@ jobs:
           sudo chmod 600 /swap-kernel
           sudo mkswap /swap-kernel
           sudo swapon /swap-kernel
-      - name: Fetch pinned sources and toolchain
+      - name: Resolve latest crDroid sources and fetch toolchain
         run: bash scripts/fetch.sh
       - name: Integrate patches and build
         run: |

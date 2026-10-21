@@ -5,6 +5,17 @@ python3 - <<'PYFETCH'
 import json,subprocess
 from pathlib import Path
 lock=json.loads(Path('sources.lock.json').read_text())
+# Resolve branch tips once per run, then fetch immutable commits.
+for name,s in lock.items():
+    if s.get('tracking') == 'branch':
+        ref='refs/heads/'+s['branch']
+        rows=subprocess.check_output(['git','ls-remote','--exit-code',s['url'],ref],text=True).splitlines()
+        matches=[row.split()[0] for row in rows if row.split()[1] == ref]
+        if len(matches) != 1:
+            raise RuntimeError(f'Cannot resolve upstream branch: {name} {ref}')
+        s['commit']=matches[0]
+        print(f'Resolved {name}: {ref} -> {s["commit"]}',flush=True)
+Path('artifacts/sources.lock.json').write_text(json.dumps(lock,indent=2)+'\n')
 for name,s in lock.items():
     path=Path('work')/name
     subprocess.run(['git','init',str(path)],check=True)
@@ -60,4 +71,4 @@ mkdir -p work/clang
 curl -fL --retry 3 "$url" -o work/clang.tar.gz
 sha256sum work/clang.tar.gz > artifacts/toolchain.sha256
 tar -xf work/clang.tar.gz -C work/clang
-cp sources.lock.json artifacts/
+cp sources.lock.json artifacts/sources.requested.json

@@ -2,17 +2,17 @@
   "kernel": {
     "url": "https://github.com/crdroidandroid/android_kernel_oneplus_sm8650.git",
     "branch": "17.0",
-    "commit": "3127ab97bcbbd4a86f7326b48fc3a1fbe6a4c12c"
+    "tracking": "branch"
   },
   "modules": {
     "url": "https://github.com/crdroidandroid/android_kernel_oneplus_sm8650-modules.git",
     "branch": "17.0",
-    "commit": "9c789e62f8f7f76754ff9db257ab08c4e212a6cc"
+    "tracking": "branch"
   },
   "devicetrees": {
     "url": "https://github.com/crdroidandroid/android_kernel_oneplus_sm8650-devicetrees.git",
     "branch": "17.0",
-    "commit": "788a0e614d3e6abff95b818cc1b40ca0f744e543"
+    "tracking": "branch"
   },
   "bakasu": {
     "url": "https://github.com/Baka-SU/BakaSU.git",
