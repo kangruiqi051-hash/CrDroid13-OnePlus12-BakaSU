@@ -20,10 +20,17 @@ for name,s in lock.items():
     path=Path('work')/name
     subprocess.run(['git','init',str(path)],check=True)
     subprocess.run(['git','-C',str(path),'remote','add','origin',s['url']],check=True)
-    subprocess.run(['git','-C',str(path),'fetch','--depth=1','origin',s['commit']],check=True)
+    fetch=['git','-C',str(path),'fetch']
+    # BakaSU derives its driver version from the full commit count and tags.
+    fetch += ['--tags'] if name == 'bakasu' else ['--depth=1']
+    subprocess.run(fetch+['origin',s['commit']],check=True)
     subprocess.run(['git','-C',str(path),'checkout','--detach','FETCH_HEAD'],check=True)
     actual=subprocess.check_output(['git','-C',str(path),'rev-parse','HEAD'],text=True).strip()
     assert actual==s['commit'],(name,actual)
+    if name == 'bakasu':
+        count=int(subprocess.check_output(['git','-C',str(path),'rev-list','--count','HEAD'],text=True))
+        s['version_code']=30700+count
+        print(f'BakaSU driver version: {s["version_code"]}',flush=True)
 # crDroid tracks external driver symlinks using its original sibling names.
 # Resolve by the explicit upstream marker, rather than relying on directory depth.
 import os

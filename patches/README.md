@@ -1,5 +1,5 @@
-# SUSFS compatibility patch
+# SUSFS kernel patch
 
-Source: simonpunk/susfs4ksu, gki-android14-6.1, commit 5192aa2d33b381b58c1051532f9e1dfa5de6e8d3. GPL-2.0.
+Source: simonpunk/susfs4ksu, branch gki-android14-6.1, commit 27e0a0e42745991ba09d6f96a97bf4b83f41a012. GPL-2.0.
 
-50-susfs-crdroid17.patch preserves all upstream functional hunks. Only the first namespace.c hunk context/counts are adjusted to retain crDroid's existing trace/hooks/blk.h include. Checked with git apply --check against crDroid kernel 3127ab97bcbbd4a86f7326b48fc3a1fbe6a4c12c. No reject is discarded.
+50-susfs-crdroid17.patch is the complete, unmodified upstream kernel patch at that commit. Checked with git apply --check against crDroid 17.0 kernel commit 8680f334026175c2238923ba600d7730cb9c0134 (6.1.177). No reject is discarded and no compatibility guard is bypassed.

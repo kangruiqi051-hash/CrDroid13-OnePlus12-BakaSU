@@ -17,12 +17,12 @@
   "bakasu": {
     "url": "https://github.com/Baka-SU/BakaSU.git",
     "branch": "main",
-    "commit": "5b76b884c75f729a220bb317aa4a4fc78f0e0e9c"
+    "commit": "d5e9e025b8b49155f8014684d64c91742b465f65"
   },
   "susfs": {
     "url": "https://gitlab.com/simonpunk/susfs4ksu.git",
     "branch": "gki-android14-6.1",
-    "commit": "5192aa2d33b381b58c1051532f9e1dfa5de6e8d3"
+    "commit": "27e0a0e42745991ba09d6f96a97bf4b83f41a012"
   },
   "anykernel": {
     "url": "https://github.com/AkiHaza/AnyKernel3.git",

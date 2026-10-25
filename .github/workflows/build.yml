@@ -13,6 +13,7 @@ on:
         default: true
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: kernel-${{ github.ref }}-${{ inputs.variant }}
   cancel-in-progress: false
@@ -37,6 +38,11 @@ jobs:
           sudo swapon /swap-kernel
       - name: Resolve latest crDroid sources and fetch toolchain
         run: bash scripts/fetch.sh
+      - name: Fetch matching official BakaSU managers
+        if: inputs.variant != 'Stock'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/fetch-managers.py
       - name: Integrate patches and build
         run: |
           mkdir -p artifacts
@@ -69,6 +75,9 @@ jobs:
           GH_REPO: ${{ github.repository }}
           VARIANT: ${{ inputs.variant }}
         run: |
-          gh release create "build-${GITHUB_RUN_NUMBER}" artifacts/*.zip artifacts/build-info.json \
+          shopt -s nullglob
+          assets=(artifacts/*.zip artifacts/*.apk artifacts/*.json)
+          gh release create "build-${GITHUB_RUN_NUMBER}" "${assets[@]}" \
+            --target "${GITHUB_SHA}" \
             --title "waffle crDroid 13 ${VARIANT} #${GITHUB_RUN_NUMBER}" \
-            --notes "Source-pinned experimental kernel. Compile success is not device boot validation. Disable existing SUSFS LKM before using a built-in SUSFS build."
+            --notes "Latest crDroid 17.0 sources; actual commits and driver version are in build-info.json. Included official normal and Spoofed managers match the BakaSU driver commit (except Stock builds). Compilation success is not device boot validation. Disable existing SUSFS LKM before using built-in SUSFS."

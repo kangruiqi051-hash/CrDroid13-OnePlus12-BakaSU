@@ -31,6 +31,10 @@ SUSFS 补丁冲突会失败停止，不使用 `patch || true` 或删除 rejects�
 
 参考工作流和 extract-cert 主机兼容修复来自 Floran-Kernel；内核和各补丁保留上游许可证。此仓库是构建脚本集合，不把上游代码改称自有源码。来源 URL 和提交见 sources.lock.json。
 
-### BakaSU / SUSFS compatibility pin
+### BakaSU / SUSFS 与管理器
 
-BakaSU is pinned to `5b76b884c75f729a220bb317aa4a4fc78f0e0e9c`, immediately before upstream suspended SUSFS builds in `48fa4bb7ec8bddb8ea932a8c9be0877f89a1fa73`. Newer BakaSU changes are not included. The upstream suspension concerns SELinux hiding compatibility; its build guard is not removed. Compilation and device behavior must still be verified.
+BakaSU 更新为 2026-10-25 main 提交 `d5e9e025b8b49155f8014684d64c91742b465f65`，驱动版本 `35252`。上游已解除 SUSFS 构建暂停；SUSFS 同步为 `27e0a0e42745991ba09d6f96a97bf4b83f41a012`，使用该版本原始内核补丁，不绕过兼容检查。
+
+BakaSU 使用完整 Git 历史与标签，确保驱动版本号计算准确。非 Stock 构建从官方成功的 main CI `40109566037` 下载普通 `Manager-release` 与 `Spoofed-Manager-release`，严格核对该 CI 的源码提交与本次驱动完全一致，并验证上游 artifact SHA256（如提供）。不重新签名管理器。Release 同时发布 AK3、两份 APK、build-info.json、manager-info.json 和实际源码记录。
+
+BakaSU 不是自动追踪最新分支：每次升级时必须同时更新 sources.lock.json 和 manager-ci.json，避免驱动与管理器混用。上游 Actions 产物有保留期限；缺失或过期会明确失败，不使用其他提交的管理器替代。
