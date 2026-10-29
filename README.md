@@ -60,3 +60,5 @@ BakaSU 不是自动追踪最新分支：每次升级时必须同时更新 source
 产物中的 `features.json` 记录本次选项、补丁哈希及配置验证结果，`build-info.json` 同时包含这些信息，Release 附带这些记录。Artifact 中额外保留本次实际应用的功能补丁。新功能需要实机验证，建议逐项启用以方便判断兼容性。
 
 网络配置适配说明：此 crDroid 6.1 分支的 CIFS 本身不依赖 NETFS_SUPPORT。NETFS_SUPPORT 为隐藏选项，由 FSCACHE 等功能选择，因此不直接请求它，也不额外开启未要求的磁盘缓存功能。
+
+Release 中的内核 ZIP 文件名使用北京时间年月日，例如 `waffle-crDroid13-BakaSU-SUSFS-20261030.zip`。构建运行编号仍保留在记录及 Release 标签中，方便追溯。
