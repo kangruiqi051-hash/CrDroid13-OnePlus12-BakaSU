@@ -153,7 +153,10 @@ def verify():
     state['config_mismatches'] = mismatches
     for name, status in state['status'].items():
         if status == 'requested':
-            state['status'][name] = 'configured' if not mismatches else 'configuration-failed'
+            group_failed = any(key in mismatches for key in GROUPS[name])
+            if name == 'bbg' and 'CONFIG_LSM' in mismatches:
+                group_failed = True
+            state['status'][name] = 'configuration-failed' if group_failed else 'configured'
     STATE.write_text(json.dumps(state, indent=2) + '\n')
     if mismatches:
         raise RuntimeError('Kconfig dropped selected feature options: ' + json.dumps(mismatches))

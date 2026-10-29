@@ -58,3 +58,5 @@ BakaSU 不是自动追踪最新分支：每次升级时必须同时更新 source
 功能源码固定在 `features.lock.json` 的提交，不执行浮动版本的远程安装脚本。`patches/features/` 是为 crDroid 上下文调整的补丁；其来源、修改点见该目录说明。功能补丁在 SUSFS 后应用，冲突立即停止；olddefconfig 后逐项核实请求的配置，未生效则构建失败。
 
 产物中的 `features.json` 记录本次选项、补丁哈希及配置验证结果，`build-info.json` 同时包含这些信息，Release 附带这些记录。Artifact 中额外保留本次实际应用的功能补丁。新功能需要实机验证，建议逐项启用以方便判断兼容性。
+
+网络配置适配说明：此 crDroid 6.1 分支的 CIFS 本身不依赖 NETFS_SUPPORT。NETFS_SUPPORT 为隐藏选项，由 FSCACHE 等功能选择，因此不直接请求它，也不额外开启未要求的磁盘缓存功能。

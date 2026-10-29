@@ -69,10 +69,10 @@ if [[ "$VARIANT" != Stock ]]; then
 fi
 python3 "$ROOT/scripts/features.py" configure
 make O=out olddefconfig
+cp out/.config "$ROOT/artifacts/kernel.config"
 python3 "$ROOT/scripts/features.py" verify
 if [[ "$VARIANT" != Stock ]]; then grep -qx 'CONFIG_KSU=y' out/.config; fi
 if [[ "$VARIANT" == BakaSU-SUSFS ]]; then grep -qx 'CONFIG_KSU_SUSFS=y' out/.config; fi
-cp out/.config "$ROOT/artifacts/kernel.config"
 make -j"$(nproc)" O=out Image
 cp out/arch/arm64/boot/Image "$ROOT/artifacts/Image"
 cp out/Module.symvers "$ROOT/artifacts/" 2>/dev/null || :
