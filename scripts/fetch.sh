@@ -5,6 +5,18 @@ python3 - <<'PYFETCH'
 import json,subprocess
 from pathlib import Path
 lock=json.loads(Path('sources.lock.json').read_text())
+import os
+features={name:os.environ.get('USE_'+name.upper(),'false').lower() == 'true'
+          for name in json.loads(Path('feature-configs.json').read_text())}
+pins=json.loads(Path('features.lock.json').read_text())
+needed=set()
+if any(features[n] for n in ('net','ntsync','unicode','perf')): needed.add('wild_patches')
+for name,flag in [('nomount','nomount'),('bbg','bbg'),('droidspaces','ds')]:
+    if features[flag]: needed.add(name)
+for name in sorted(needed): lock[name]=pins[name]
+Path('artifacts/features.json').write_text(json.dumps({'requested':features,
+    'reference':pins['wild_features'],'status':{},'patches':[]},indent=2)+'\n')
+
 # Resolve branch tips once per run, then fetch immutable commits.
 for name,s in lock.items():
     if s.get('tracking') == 'branch':

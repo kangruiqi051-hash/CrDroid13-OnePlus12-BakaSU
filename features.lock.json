@@ -1,0 +1,27 @@
+{
+  "wild_patches": {
+    "url": "https://github.com/WildKernels/kernel_patches.git",
+    "branch": "main",
+    "commit": "c78291aeb0dca025f21e6b197e0aa4fde42e065d"
+  },
+  "nomount": {
+    "url": "https://github.com/maxsteeel/nomount.git",
+    "branch": "dev",
+    "commit": "9c69668eefdc524c6155f7925cc7649200c6d737"
+  },
+  "bbg": {
+    "url": "https://github.com/vc-teahouse/Baseband-guard.git",
+    "branch": "main",
+    "commit": "028ff7fd509e2104596da7cc1ef8e6ce2a0c9082"
+  },
+  "droidspaces": {
+    "url": "https://github.com/ravindu644/Droidspaces-OSS.git",
+    "branch": "main",
+    "commit": "c4cd876ba33a916b63bfef3dd0ccedb93cd13035"
+  },
+  "wild_features": {
+    "url": "https://github.com/WildKernels/GKI_KernelSU_SUSFS.git",
+    "branch": "main",
+    "commit": "8d8e03391f26677b033d3c27face86a738a6a319"
+  }
+}

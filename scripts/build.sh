@@ -54,6 +54,7 @@ if [[ "$VARIANT" == BakaSU-SUSFS ]]; then
   git apply --check "$ROOT/patches/50-susfs-crdroid17.patch"
   git apply "$ROOT/patches/50-susfs-crdroid17.patch"
 fi
+python3 "$ROOT/scripts/features.py" integrate
 make O=out gki_defconfig vendor/pineapple_GKI.config vendor/oplus/pineapple_GKI.config
 if [[ "$VARIANT" != Stock ]]; then
   scripts/config --file out/.config --enable KSU --disable MODULE_SIG_PROTECT
@@ -66,7 +67,9 @@ if [[ "$VARIANT" != Stock ]]; then
     scripts/config --file out/.config --enable KSU_TRACEPOINT_HOOK --disable KSU_SUSFS --disable KSU_MANUAL_HOOK
   fi
 fi
+python3 "$ROOT/scripts/features.py" configure
 make O=out olddefconfig
+python3 "$ROOT/scripts/features.py" verify
 if [[ "$VARIANT" != Stock ]]; then grep -qx 'CONFIG_KSU=y' out/.config; fi
 if [[ "$VARIANT" == BakaSU-SUSFS ]]; then grep -qx 'CONFIG_KSU_SUSFS=y' out/.config; fi
 cp out/.config "$ROOT/artifacts/kernel.config"

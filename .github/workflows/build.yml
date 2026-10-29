@@ -11,6 +11,42 @@ on:
         description: Publish successful build as a release
         type: boolean
         default: true
+      use_nomount:
+        description: "NoMount VFS driver"
+        type: boolean
+        default: false
+      use_bbg:
+        description: "Baseband Guard LSM"
+        type: boolean
+        default: false
+      use_net:
+        description: "Networking (BBRv3, WireGuard, IPv6 NAT, CIFS)"
+        type: boolean
+        default: false
+      use_ds:
+        description: "DroidSpaces container support"
+        type: boolean
+        default: false
+      use_ntsync:
+        description: "NTSync"
+        type: boolean
+        default: false
+      use_unicode:
+        description: "Experimental Unicode path fix"
+        type: boolean
+        default: false
+      use_bpf:
+        description: "BTF + eBPF + FUSE-BPF"
+        type: boolean
+        default: false
+      use_perf:
+        description: "Experimental performance patches"
+        type: boolean
+        default: false
+      use_ptrace:
+        description: "Ptrace fix (not needed on kernel 6.1)"
+        type: boolean
+        default: false
 permissions:
   contents: read
   actions: read
@@ -26,6 +62,15 @@ jobs:
         shell: bash
     env:
       VARIANT: ${{ inputs.variant }}
+      USE_NET: ${{ inputs.use_net }}
+      USE_DS: ${{ inputs.use_ds }}
+      USE_NTSYNC: ${{ inputs.use_ntsync }}
+      USE_NOMOUNT: ${{ inputs.use_nomount }}
+      USE_BBG: ${{ inputs.use_bbg }}
+      USE_BPF: ${{ inputs.use_bpf }}
+      USE_UNICODE: ${{ inputs.use_unicode }}
+      USE_PERF: ${{ inputs.use_perf }}
+      USE_PTRACE: ${{ inputs.use_ptrace }}
     steps:
       - uses: actions/checkout@v4
       - name: Prepare build machine

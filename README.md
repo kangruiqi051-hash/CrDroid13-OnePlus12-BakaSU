@@ -25,7 +25,7 @@ Actions → Build crDroid 13 OnePlus 12 Kernel → Run workflow。
 
 ## 补丁维护
 
-SUSFS 补丁冲突会失败停止，不使用 `patch || true` 或删除 rejects。遇到上游更新导致冲突时，需要手工审查兼容适配后再构建。默认不加入 LZ4、Docker、Droidspaces 或其他无关功能。
+SUSFS 补丁冲突会失败停止，不使用 `patch || true` 或删除 rejects。遇到上游更新导致冲突时，需要手工审查兼容适配后再构建。可选功能默认关闭，按需在 Actions 中选择。
 
 ## 归属
 
@@ -38,3 +38,23 @@ BakaSU 更新为 2026-10-25 main 提交 `d5e9e025b8b49155f8014684d64c91742b465f6
 BakaSU 使用完整 Git 历史与标签，确保驱动版本号计算准确。非 Stock 构建从官方成功的 main CI `40109566037` 下载普通 `Manager-release` 与 `Spoofed-Manager-release`，严格核对该 CI 的源码提交与本次驱动完全一致，并验证上游 artifact SHA256（如提供）。不重新签名管理器。Release 同时发布 AK3、两份 APK、build-info.json、manager-info.json 和实际源码记录。
 
 BakaSU 不是自动追踪最新分支：每次升级时必须同时更新 sources.lock.json 和 manager-ci.json，避免驱动与管理器混用。上游 Actions 产物有保留期限；缺失或过期会明确失败，不使用其他提交的管理器替代。
+
+## 可选内核 Features
+
+参考 [WildKernels/GKI_KernelSU_SUSFS](https://github.com/WildKernels/GKI_KernelSU_SUSFS) 的功能开关，适配本项目的 crDroid android14-6.1 内核。原有 variant 继续决定是否集成 BakaSU / SUSFS；下面的新增功能均默认关闭。
+
+| Actions 选项 | 实际作用 |
+| --- | --- |
+| `use_nomount` | 集成 NoMount VFS 驱动。仍需配套用户空间元模块；构建内核不会自动安装手机模块。 |
+| `use_bbg` | 集成 Baseband Guard LSM，并保留已有 LSM 顺序后追加 baseband_guard；会限制相关分区访问。 |
+| `use_net` | BBRv3 补丁，启用 BBR 默认拥塞控制、WireGuard、CIFS、IPSET、IPv6 NAT、TTL/HL、队列调度等。不会自动修改手机的代理、路由或共享网络。 |
+| `use_ds` | DroidSpaces 所需命名空间、SYSVIPC、消息队列、devtmpfs 和执行格式，使用 kABI 预留空间存放 SYSVIPC 字段。 |
+| `use_ntsync` | 回移 NTSync 驱动和 6.1 兼容补丁。 |
+| `use_unicode` | 实验性 Unicode 路径处理补丁。 |
+| `use_bpf` | eBPF / BTF / FUSE-BPF 与探针配置；不自动安装用户空间工具。 |
+| `use_perf` | 上游实验性内存、调度、文件系统、电源及日志补丁集合；不保证更省电或更流畅。 |
+| `use_ptrace` | 保留上游选项以便对照；上游只对 5.16 之前的内核应用此修复，本项目 6.1 标记为不适用，不重复打补丁。 |
+
+功能源码固定在 `features.lock.json` 的提交，不执行浮动版本的远程安装脚本。`patches/features/` 是为 crDroid 上下文调整的补丁；其来源、修改点见该目录说明。功能补丁在 SUSFS 后应用，冲突立即停止；olddefconfig 后逐项核实请求的配置，未生效则构建失败。
+
+产物中的 `features.json` 记录本次选项、补丁哈希及配置验证结果，`build-info.json` 同时包含这些信息，Release 附带这些记录。Artifact 中额外保留本次实际应用的功能补丁。新功能需要实机验证，建议逐项启用以方便判断兼容性。
