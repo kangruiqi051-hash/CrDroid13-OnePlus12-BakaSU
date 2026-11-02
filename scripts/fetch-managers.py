@@ -1,4 +1,4 @@
-"""Publish official manager APKs built from the kernel's exact BakaSU commit."""
+"""Fetch the official normal manager APK built from the kernel's exact BakaSU commit."""
 import hashlib
 import io
 import json
@@ -60,7 +60,8 @@ while True:
         break
     page += 1
 manifest = {'commit': commit, 'driver_version_code': version, 'upstream_run': run['html_url'], 'apks': []}
-for kind in ('Manager-release', 'Spoofed-Manager-release'):
+# Upstream no longer builds a Spoofed manager. Require only the normal release.
+for kind in ('Manager-release',):
     matches = [a for a in artifacts if a['name'] == kind and not a['expired']]
     assert len(matches) == 1, f'Missing official artifact: {kind}; update manager-ci.json to a matching successful run'
     artifact = matches[0]

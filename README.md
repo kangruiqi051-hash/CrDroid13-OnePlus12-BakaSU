@@ -35,7 +35,7 @@ SUSFS 补丁冲突会失败停止，不使用 `patch || true` 或删除 rejects�
 
 BakaSU 更新为 2026-10-25 main 提交 `d5e9e025b8b49155f8014684d64c91742b465f65`，驱动版本 `35252`。上游已解除 SUSFS 构建暂停；SUSFS 同步为 `27e0a0e42745991ba09d6f96a97bf4b83f41a012`，使用该版本原始内核补丁，不绕过兼容检查。
 
-BakaSU 使用完整 Git 历史与标签，确保驱动版本号计算准确。非 Stock 构建从官方成功的 main CI `40109566037` 下载普通 `Manager-release` 与 `Spoofed-Manager-release`，严格核对该 CI 的源码提交与本次驱动完全一致，并验证上游 artifact SHA256（如提供）。不重新签名管理器。Release 同时发布 AK3、两份 APK、build-info.json、manager-info.json 和实际源码记录。
+BakaSU 使用完整 Git 历史与标签，确保驱动版本号计算准确。非 Stock 构建从官方成功的 main CI `40109566037` 仅下载普通 `Manager-release`，严格核对该 CI 的源码提交与本次驱动完全一致，并验证上游 artifact SHA256（如提供）。不重新签名管理器。Release 同时发布 AK3、一份普通管理器 APK、build-info.json、manager-info.json 和实际源码记录。
 
 BakaSU 不是自动追踪最新分支：每次升级时必须同时更新 sources.lock.json 和 manager-ci.json，避免驱动与管理器混用。上游 Actions 产物有保留期限；缺失或过期会明确失败，不使用其他提交的管理器替代。
 
@@ -62,3 +62,5 @@ BakaSU 不是自动追踪最新分支：每次升级时必须同时更新 source
 网络配置适配说明：此 crDroid 6.1 分支的 CIFS 本身不依赖 NETFS_SUPPORT。NETFS_SUPPORT 为隐藏选项，由 FSCACHE 等功能选择，因此不直接请求它，也不额外开启未要求的磁盘缓存功能。
 
 Release 中的内核 ZIP 文件名使用北京时间年月日，例如 `waffle-crDroid13-BakaSU-SUSFS-20261030.zip`。构建运行编号仍保留在记录及 Release 标签中，方便追溯。
+
+上游已取消 Spoofed 管理器构建：本项目不再查找、下载或向新 Release 附加 Spoofed APK。Release 的 APK 附件只匹配普通 `BakaSU-Manager-release-*.apk`，即使输出目录中残留旧 Spoofed APK 也不会上传。历史 Release 保留原有资产。本次调整不改变固定的驱动提交及对应 CI。
