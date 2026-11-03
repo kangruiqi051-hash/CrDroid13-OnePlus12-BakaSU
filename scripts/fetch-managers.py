@@ -3,6 +3,7 @@ import hashlib
 import io
 import json
 import os
+import time
 from pathlib import Path
 import urllib.error
 import urllib.request
@@ -12,17 +13,24 @@ out = Path('artifacts')
 config = json.loads(Path('manager-ci.json').read_text())
 sources = json.loads((out / 'sources.lock.json').read_text())
 commit = sources['bakasu']['commit']
-assert config['commit'] == commit, 'Manager CI must match the driver commit'
-version = config['driver_version_code']
-assert sources['bakasu'].get('version_code', version) == version, 'Driver version count differs from official CI'
+version = sources['bakasu']['version_code']
 base = 'https://api.github.com/repos/' + config['repository']
 headers = {'Accept': 'application/vnd.github+json', 'User-Agent': 'waffle-kernel-builder',
            'Authorization': 'Bearer ' + os.environ['GH_TOKEN']}
 
 
 def api(path):
-    with urllib.request.urlopen(urllib.request.Request(base + path, headers=headers), timeout=120) as response:
-        return json.load(response)
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(urllib.request.Request(base + path, headers=headers), timeout=60) as response:
+                return json.load(response)
+        except urllib.error.HTTPError as error:
+            if error.code not in (429, 500, 502, 503, 504) or attempt == 2:
+                raise
+        except OSError:
+            if attempt == 2:
+                raise
+        time.sleep(2 ** attempt)
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -46,24 +54,38 @@ def download(url):
         return response.read()
 
 
-run_id = config['run_id']
-run = api(f'/actions/runs/{run_id}')
-assert run['head_sha'] == commit and run['head_branch'] == 'main'
-assert run['event'] == 'push' and run['conclusion'] == 'success'
-assert run['path'] == '.github/workflows/build-manager.yml'
+# Resolve only successful main push builds of this exact driver commit.
+# Do not substitute an older driver or an APK built from another commit.
+runs = api('/actions/workflows/' + config['workflow'] + '/runs?branch=' +
+           config['branch'] + '&event=push&status=success&head_sha=' + commit + '&per_page=100')['workflow_runs']
+run = None
 artifacts = []
-page = 1
-while True:
-    batch = api(f'/actions/runs/{run_id}/artifacts?per_page=100&page={page}')['artifacts']
-    artifacts.extend(batch)
-    if len(batch) < 100:
+for candidate in runs:
+    if (candidate['head_sha'] != commit or candidate['head_branch'] != config['branch']
+            or candidate['event'] != 'push' or candidate['conclusion'] != 'success'
+            or candidate['path'] != '.github/workflows/' + config['workflow']):
+        continue
+    found = []
+    page = 1
+    while True:
+        batch = api(f"/actions/runs/{candidate['id']}/artifacts?per_page=100&page={page}")['artifacts']
+        found.extend(batch)
+        if len(batch) < 100:
+            break
+        page += 1
+    if len([a for a in found if a['name'] == config['artifact'] and not a['expired']]) == 1:
+        run, artifacts = candidate, found
         break
-    page += 1
+if run is None:
+    raise RuntimeError(f'No successful official {config["workflow"]} with an available '
+                       f'{config["artifact"]} for BakaSU {commit}. '
+                       'Wait for upstream CI to finish, then run this workflow again.')
+print('Resolved matching official manager CI:', run['html_url'], flush=True)
 manifest = {'commit': commit, 'driver_version_code': version, 'upstream_run': run['html_url'], 'apks': []}
 # Upstream no longer builds a Spoofed manager. Require only the normal release.
-for kind in ('Manager-release',):
+for kind in (config['artifact'],):
     matches = [a for a in artifacts if a['name'] == kind and not a['expired']]
-    assert len(matches) == 1, f'Missing official artifact: {kind}; update manager-ci.json to a matching successful run'
+    assert len(matches) == 1, f'Missing official artifact: {kind}; retry after upstream publishes the matching artifact'
     artifact = matches[0]
     cache = Path('work/manager-downloads')
     cache.mkdir(parents=True, exist_ok=True)

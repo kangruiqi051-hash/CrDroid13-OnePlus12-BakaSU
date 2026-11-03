@@ -15,9 +15,9 @@ Actions → Build crDroid 13 OnePlus 12 Kernel → Run workflow。
 
 ## 来源和兼容性
 
-每次运行都会解析 crDroid 内核、厂商模块和设备树 `17.0` 分支的最新提交，再按解析出的提交构建；BakaSU、SUSFS 和 AnyKernel3 继续固定在已选版本。仓库中的 sources.lock.json 定义跟踪策略，产物中的同名文件记录本次实际使用的全部提交，sources.requested.json 保留输入配置，AK3 中的 build-info.json 也记录实际提交。源码最新分支不保证与某个已发布 ROM 二进制完全对应，上游尚未公开的更新无法自动获取。内核、设备树和厂商模块的仓库均来自 crDroid 17.0 设备依赖。SUSFS 使用内核系列 `gki-android14-6.1`；它与用户空间的 Android 17 不是同一版本编号。
+每次运行都会解析 crDroid 内核、厂商模块和设备树 `17.0` 分支的最新提交，再按解析出的提交构建；BakaSU 跟踪 main，SUSFS 跟踪 gki-android14-6.1，已启用的功能补丁也跟踪各自上游分支；AnyKernel3 保留固定版本。仓库中的 sources.lock.json 定义跟踪策略，产物中的同名文件记录本次实际使用的全部提交，sources.requested.json 保留输入配置，AK3 中的 build-info.json 也记录实际提交。源码最新分支不保证与某个已发布 ROM 二进制完全对应，上游尚未公开的更新无法自动获取。内核、设备树和厂商模块的仓库均来自 crDroid 17.0 设备依赖。SUSFS 使用内核系列 `gki-android14-6.1`；它与用户空间的 Android 17 不是同一版本编号。
 
-使用官方三个 defconfig 片段，参考 Floran 的 Android 17 Clang r596125，并记录工具链压缩包 SHA256。BakaSU 直接集成固定提交，不调用会追踪最新版的 setup.sh。
+使用官方三个 defconfig 片段，参考 Floran 的 Android 17 Clang r596125，并记录工具链压缩包 SHA256。BakaSU 直接集成本次解析的最新提交，不执行远程 setup.sh。
 
 本工作流只编译和替换 boot 中的 Image，不刷 vendor_boot、dtbo、init_boot 或厂商模块。配套 modules/devicetrees 源码保留用于核对，不宣称重新构建了完整 ROM。必须使用匹配的 crDroid 厂商模块，编译成功不代表设备验证成功。振动、相机、Wi-Fi、recovery 必须实机验证。
 
@@ -33,11 +33,11 @@ SUSFS 补丁冲突会失败停止，不使用 `patch || true` 或删除 rejects�
 
 ### BakaSU / SUSFS 与管理器
 
-BakaSU 更新为 2026-10-25 main 提交 `d5e9e025b8b49155f8014684d64c91742b465f65`，驱动版本 `35252`。上游已解除 SUSFS 构建暂停；SUSFS 同步为 `27e0a0e42745991ba09d6f96a97bf4b83f41a012`，使用该版本原始内核补丁，不绕过兼容检查。
+每次运行自动解析 BakaSU main 最新提交，使用完整 Git 历史与标签计算驱动版本。然后查询官方 build-manager.yml 成功的 main push CI，要求源码提交与本次驱动完全一致，且存在未过期的普通 Manager-release。自动提取对应版本的 ARM64 管理器并校验 artifact SHA256（如提供）。不重新签名，也不下载 Spoofed 管理器。
 
-BakaSU 使用完整 Git 历史与标签，确保驱动版本号计算准确。非 Stock 构建从官方成功的 main CI `40109566037` 仅下载普通 `Manager-release`，严格核对该 CI 的源码提交与本次驱动完全一致，并验证上游 artifact SHA256（如提供）。不重新签名管理器。Release 同时发布 AK3、一份普通管理器 APK、build-info.json、manager-info.json 和实际源码记录。
+如果最新驱动暂时没有同提交的成功管理器 CI，构建会明确失败；等待上游完成后再次运行，不会回退到旧驱动或使用其他提交的 APK。manager-ci.json 只配置仓库、分支、工作流和产物名称，不再固定 run_id、提交或版本号。
 
-BakaSU 不是自动追踪最新分支：每次升级时必须同时更新 sources.lock.json 和 manager-ci.json，避免驱动与管理器混用。上游 Actions 产物有保留期限；缺失或过期会明确失败，不使用其他提交的管理器替代。
+SUSFS 每次从 gki-android14-6.1 分支最新提交获取源码及 50_add_susfs_in_gki-android14-6.1.patch，严格应用检查，并保留实际补丁及哈希。Release 发布 AK3、普通管理器和来源记录。
 
 ## 可选内核 Features
 
@@ -55,7 +55,7 @@ BakaSU 不是自动追踪最新分支：每次升级时必须同时更新 source
 | `use_perf` | 上游实验性内存、调度、文件系统、电源及日志补丁集合；不保证更省电或更流畅。 |
 | `use_ptrace` | 保留上游选项以便对照；上游只对 5.16 之前的内核应用此修复，本项目 6.1 标记为不适用，不重复打补丁。 |
 
-功能源码固定在 `features.lock.json` 的提交，不执行浮动版本的远程安装脚本。`patches/features/` 是为 crDroid 上下文调整的补丁；其来源、修改点见该目录说明。功能补丁在 SUSFS 后应用，冲突立即停止；olddefconfig 后逐项核实请求的配置，未生效则构建失败。
+功能源码按 `features.lock.json` 定义的分支自动解析最新提交，不执行远程安装脚本。`patches/features/` 是为 crDroid 上下文调整的补丁；其来源、修改点见该目录说明。优先应用最新上游补丁，只有上游补丁内容哈希仍与审查记录一致时才允许使用本地上下文适配，避免静默覆盖上游新改动。功能补丁在 SUSFS 后应用，冲突立即停止；olddefconfig 后逐项核实请求的配置，未生效则构建失败。
 
 产物中的 `features.json` 记录本次选项、补丁哈希及配置验证结果，`build-info.json` 同时包含这些信息，Release 附带这些记录。Artifact 中额外保留本次实际应用的功能补丁。新功能需要实机验证，建议逐项启用以方便判断兼容性。
 
@@ -63,4 +63,4 @@ BakaSU 不是自动追踪最新分支：每次升级时必须同时更新 source
 
 Release 中的内核 ZIP 文件名使用北京时间年月日，例如 `waffle-crDroid13-BakaSU-SUSFS-20261030.zip`。构建运行编号仍保留在记录及 Release 标签中，方便追溯。
 
-上游已取消 Spoofed 管理器构建：本项目不再查找、下载或向新 Release 附加 Spoofed APK。Release 的 APK 附件只匹配普通 `BakaSU-Manager-release-*.apk`，即使输出目录中残留旧 Spoofed APK 也不会上传。历史 Release 保留原有资产。本次调整不改变固定的驱动提交及对应 CI。
+上游已取消 Spoofed 管理器构建：本项目不再查找、下载或向新 Release 附加 Spoofed APK。Release 的 APK 附件只匹配普通 `BakaSU-Manager-release-*.apk`，即使输出目录中残留旧 Spoofed APK 也不会上传。历史 Release 保留原有资产。驱动和对应管理器 CI 在每次运行时自动解析。

@@ -1,6 +1,6 @@
 # crDroid 6.1 feature patch adaptations
 
-Upstream source commits are fixed in ../../features.lock.json. Patches retain their upstream authorship and license.
+Upstream branches are tracked via ../../features.lock.json; actual resolved commits are recorded in build artifacts. Patches retain their upstream authorship and license.
 
 Adapted against crDroid 17.0 kernel commit 6c0d07d008217df4afde27a351f711343e975b85:
 
@@ -12,3 +12,5 @@ Adapted against crDroid 17.0 kernel commit 6c0d07d008217df4afde27a351f711343e975
 - reduce_pci_pme_wakeups: refresh context; preserve 1000 -> 4000 ms change.
 
 All except SYSVIPC originate in WildKernels/kernel_patches/common. Application uses strict git apply --check, with reverse check for already-applied patches. No automatic fuzzy adaptation is performed during CI.
+
+Latest upstream patches are tried first. Local context adaptations are allowed only when upstream-sha256.json matches the downloaded original patch bytes. Changed upstream content must be reviewed before reusing an adaptation.

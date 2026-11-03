@@ -51,8 +51,12 @@ fi
 if [[ "$VARIANT" == BakaSU-SUSFS ]]; then
   cp ../susfs/kernel_patches/fs/* fs/
   cp ../susfs/kernel_patches/include/linux/* include/linux/
-  git apply --check "$ROOT/patches/50-susfs-crdroid17.patch"
-  git apply "$ROOT/patches/50-susfs-crdroid17.patch"
+  susfs_patch="$ROOT/work/susfs/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch"
+  test -s "$susfs_patch"
+  cp "$susfs_patch" "$ROOT/artifacts/susfs.patch"
+  sha256sum "$susfs_patch" > "$ROOT/artifacts/susfs-patch.sha256"
+  git apply --check "$susfs_patch"
+  git apply "$susfs_patch"
 fi
 python3 "$ROOT/scripts/features.py" integrate
 make O=out gki_defconfig vendor/pineapple_GKI.config vendor/oplus/pineapple_GKI.config

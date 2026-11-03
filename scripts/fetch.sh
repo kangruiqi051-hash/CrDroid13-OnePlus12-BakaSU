@@ -14,9 +14,6 @@ if any(features[n] for n in ('net','ntsync','unicode','perf')): needed.add('wild
 for name,flag in [('nomount','nomount'),('bbg','bbg'),('droidspaces','ds')]:
     if features[flag]: needed.add(name)
 for name in sorted(needed): lock[name]=pins[name]
-Path('artifacts/features.json').write_text(json.dumps({'requested':features,
-    'reference':pins['wild_features'],'status':{},'patches':[]},indent=2)+'\n')
-
 # Resolve branch tips once per run, then fetch immutable commits.
 for name,s in lock.items():
     if s.get('tracking') == 'branch':
@@ -27,6 +24,12 @@ for name,s in lock.items():
             raise RuntimeError(f'Cannot resolve upstream branch: {name} {ref}')
         s['commit']=matches[0]
         print(f'Resolved {name}: {ref} -> {s["commit"]}',flush=True)
+# Record the reference workflow tip without cloning its entire repository.
+reference=pins['wild_features'].copy()
+reference['commit']=subprocess.check_output(['git','ls-remote','--exit-code',reference['url'],
+    'refs/heads/'+reference['branch']],text=True).split()[0]
+Path('artifacts/features.json').write_text(json.dumps({'requested':features,
+    'reference':reference,'status':{},'patches':[]},indent=2)+'\n')
 Path('artifacts/sources.lock.json').write_text(json.dumps(lock,indent=2)+'\n')
 for name,s in lock.items():
     path=Path('work')/name

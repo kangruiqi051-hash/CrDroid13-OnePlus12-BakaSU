@@ -23,29 +23,41 @@ def run(*args):
 
 
 def patch(source, state, transform=None):
-    upstream = source
-    adapted = ROOT / "patches/features" / source.name
-    if adapted.exists():
-        source = adapted
-    data = source.read_bytes()
-    if transform:
-        data = transform(data.decode()).encode()
+    upstream_data = source.read_bytes()
+    upstream_hash = hashlib.sha256(upstream_data).hexdigest()
+    candidates = [(upstream_data, False)]
+    adapted = ROOT / 'patches/features' / source.name
+    guards = json.loads((ROOT / 'patches/features/upstream-sha256.json').read_text())
+    # Local context adaptations are valid only for the reviewed upstream content.
+    if adapted.exists() and guards.get(source.name) == upstream_hash:
+        candidates.append((adapted.read_bytes(), True))
     applied = OUT / 'feature-patches' / source.name
     applied.parent.mkdir(exist_ok=True)
-    applied.write_bytes(data)
-    check = subprocess.run(['git', 'apply', '--check', str(applied)], cwd=KERNEL,
-                           capture_output=True, text=True)
-    if check.returncode == 0:
-        run('git', 'apply', str(applied))
-        result = 'applied'
-    elif subprocess.run(['git', 'apply', '--reverse', '--check', str(applied)],
-                        cwd=KERNEL, capture_output=True).returncode == 0:
-        result = 'already-present'
-    else:
-        raise RuntimeError(f'Feature patch conflicts with current crDroid: {source}\n{check.stderr}')
-    state['patches'].append({'name': source.name, 'sha256': hashlib.sha256(data).hexdigest(),
-                             'result': result, 'adapted': source != upstream})
-    STATE.write_text(json.dumps(state, indent=2) + '\n')
+    errors = []
+    for data, is_adapted in candidates:
+        if transform:
+            data = transform(data.decode()).encode()
+        applied.write_bytes(data)
+        check = subprocess.run(['git', 'apply', '--check', str(applied)], cwd=KERNEL,
+                               capture_output=True, text=True)
+        if check.returncode == 0:
+            run('git', 'apply', str(applied))
+            result = 'applied'
+        elif subprocess.run(['git', 'apply', '--reverse', '--check', str(applied)],
+                            cwd=KERNEL, capture_output=True).returncode == 0:
+            result = 'already-present'
+        else:
+            errors.append(check.stderr)
+            continue
+        state['patches'].append({'name': source.name,
+                                 'sha256': hashlib.sha256(data).hexdigest(),
+                                 'upstream_sha256': upstream_hash,
+                                 'result': result, 'adapted': is_adapted})
+        STATE.write_text(json.dumps(state, indent=2) + '\n')
+        return
+    raise RuntimeError(f'Feature patch conflicts with current crDroid: {source}\n'
+                       + '\n'.join(errors) +
+                       '\nChanged upstream patches require review before local adaptations can be reused.')
 
 
 def integrate():

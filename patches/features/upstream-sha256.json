@@ -1,0 +1,8 @@
+{
+  "001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch": "47fc945b2d73d9737d56c0f1c3a74cda0a95c30f9dc1b1abe546fa48940c4460",
+  "clear_page_16bytes_align.patch": "a4058de7b35494e88d58e5b74142fecde8c15d81bd0bf5307544b01225ce9bcc",
+  "disable_cache_hot_buddy.patch": "985472a58100fcbfa93ae99d9ed769f0488f529b64eb293273b24fc2b96e63d3",
+  "f2fs_reduce_congestion.patch": "c5f211765607284e6d01f329b48f1166e0d0ff49cfadd9a9ddf5c132dbd33620",
+  "increase_sk_mem_packets.patch": "fec65e7072a2675d1ddc3a36c3375831047077156781c6901b2b42c7a09e9438",
+  "reduce_pci_pme_wakeups.patch": "6eff52bb81d8ff5ae019a1a3504e2aed170f51694a37380beaa74b704751d73b"
+}
