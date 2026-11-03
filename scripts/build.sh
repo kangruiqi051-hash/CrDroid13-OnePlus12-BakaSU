@@ -51,6 +51,7 @@ fi
 if [[ "$VARIANT" == BakaSU-SUSFS ]]; then
   cp ../susfs/kernel_patches/fs/* fs/
   cp ../susfs/kernel_patches/include/linux/* include/linux/
+  python3 "$ROOT/scripts/prepare-susfs.py" fs/susfs.c "$ROOT/artifacts/susfs-compat.json"
   susfs_patch="$ROOT/work/susfs/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch"
   test -s "$susfs_patch"
   cp "$susfs_patch" "$ROOT/artifacts/susfs.patch"
@@ -77,6 +78,10 @@ cp out/.config "$ROOT/artifacts/kernel.config"
 python3 "$ROOT/scripts/features.py" verify
 if [[ "$VARIANT" != Stock ]]; then grep -qx 'CONFIG_KSU=y' out/.config; fi
 if [[ "$VARIANT" == BakaSU-SUSFS ]]; then grep -qx 'CONFIG_KSU_SUSFS=y' out/.config; fi
+# Compile SUSFS first to report upstream compatibility errors before the full build.
+if [[ "$VARIANT" == BakaSU-SUSFS ]]; then
+  make -j"$(nproc)" O=out fs/susfs.o
+fi
 make -j"$(nproc)" O=out Image
 cp out/arch/arm64/boot/Image "$ROOT/artifacts/Image"
 cp out/Module.symvers "$ROOT/artifacts/" 2>/dev/null || :

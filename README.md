@@ -64,3 +64,5 @@ SUSFS 每次从 gki-android14-6.1 分支最新提交获取源码及 50_add_susfs
 Release 中的内核 ZIP 文件名使用北京时间年月日，例如 `waffle-crDroid13-BakaSU-SUSFS-20261030.zip`。构建运行编号仍保留在记录及 Release 标签中，方便追溯。
 
 上游已取消 Spoofed 管理器构建：本项目不再查找、下载或向新 Release 附加 Spoofed APK。Release 的 APK 附件只匹配普通 `BakaSU-Manager-release-*.apk`，即使输出目录中残留旧 Spoofed APK 也不会上传。历史 Release 保留原有资产。驱动和对应管理器 CI 在每次运行时自动解析。
+
+SUSFS 兼容处理：当 PRIORITY_UID_FILTER 未启用时，上游仍可能编译其两个凭据辅助函数。本项目给这两个函数添加 `__maybe_unused`，保持函数实现及其他编译检查不变；`susfs-compat.json` 记录处理前后哈希及实际修改的函数。
